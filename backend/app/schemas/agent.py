@@ -13,6 +13,14 @@ class AgentSourceItem(BaseModel):
     title: Optional[str] = None
 
 
+class AgentActionItem(BaseModel):
+    action_name: str
+    status: str
+    action_request_id: Optional[str] = None
+    message: Optional[str] = None
+    data: Optional[dict] = None
+
+
 class AgentQueryResponse(BaseModel):
     query: str
     intent: str
@@ -25,3 +33,4 @@ class AgentQueryResponse(BaseModel):
     relevant_sources: List[str] = Field(default_factory=list)
     sources: List[AgentSourceItem] = Field(default_factory=list)
     escalation_reason: Optional[str] = None
+    action: Optional[AgentActionItem] = None

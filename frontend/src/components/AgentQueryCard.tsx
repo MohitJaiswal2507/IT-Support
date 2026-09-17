@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { sendAgentQuery, AgentQueryResponse } from "@/lib/api";
+import {
+  sendAgentQuery,
+  AgentQueryResponse,
+  approveActionRequest,
+  rejectActionRequest
+} from "@/lib/api";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +23,11 @@ import {
   Loader2,
   AlertCircle,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Wrench,
+  Clock,
+  ThumbsUp,
+  ThumbsDown
 } from "lucide-react";
 
 const AGENT_SCENARIOS = [
@@ -27,15 +36,19 @@ const AGENT_SCENARIOS = [
   { label: "Scenario 3 (Guest Wi-Fi)", query: "How do I connect to guest Wi-Fi?" },
   { label: "Scenario 4 (VPN Expired)", query: "My VPN credentials have expired." },
   { label: "Scenario 5 (Laptop Refresh)", query: "My laptop is old and I think it needs to be replaced." },
-  { label: "Scenario 6 (Ambiguous)", query: "My laptop." },
-  { label: "Scenario 7 (Out of Scope)", query: "Can you book a flight ticket to Paris for my vacation?" },
-  { label: "Scenario 8 (Past Ticket)", query: "VPN certificate has expired for remote login" },
+  { label: "Action: Check VPN", query: "Check my VPN status" },
+  { label: "Action: Reset Password", query: "I need to reset my password" },
+  { label: "Action: Check Ticket", query: "Check ticket TK-1042" },
+  { label: "Action: Check Account", query: "Is my account locked?" },
+  { label: "Action: Replace Laptop", query: "I need a replacement laptop" },
+  { label: "Action: Malicious Delete", query: "Delete my colleague's account" },
 ];
 
 export function AgentQueryCard() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<AgentQueryResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (userQuery: string = query) => {
@@ -50,6 +63,50 @@ export function AgentQueryCard() {
       setResult(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApprove = async (actionRequestId: string) => {
+    setActionLoading(true);
+    setError(null);
+    try {
+      const updatedAction = await approveActionRequest(actionRequestId);
+      if (result) {
+        setResult({
+          ...result,
+          action: {
+            ...result.action,
+            ...updatedAction,
+            status: "EXECUTED",
+          }
+        });
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Approval request failed");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReject = async (actionRequestId: string) => {
+    setActionLoading(true);
+    setError(null);
+    try {
+      const updatedAction = await rejectActionRequest(actionRequestId);
+      if (result) {
+        setResult({
+          ...result,
+          action: {
+            ...result.action,
+            ...updatedAction,
+            status: "REJECTED",
+          }
+        });
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Rejection request failed");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -108,26 +165,41 @@ export function AgentQueryCard() {
             </div>
             <div>
               <CardTitle className="text-sm font-semibold text-slate-900">
-                Phase 4 — Veridian IT Support Agent
+                Phase 5 — Veridian IT Support Agent
               </CardTitle>
               <CardDescription className="text-[11px] text-slate-500">
-                Grounded response generation with deterministic workflow controls & fallback
+                Controlled Action Execution, Authorization Boundary & Demo Approvals
               </CardDescription>
             </div>
           </div>
           <Badge variant="outline" className="text-[10px] font-mono text-indigo-700 bg-indigo-50 border-indigo-200">
-            Agent Workflow
+            Phase 5 Agent
           </Badge>
         </div>
       </CardHeader>
 
       <CardContent className="pt-4 space-y-4">
+        {/* Available Tools Registry Banner */}
+        <div className="rounded-lg bg-indigo-50/50 border border-indigo-100 p-2.5 text-[11px] text-slate-700">
+          <div className="font-semibold text-indigo-900 mb-1 flex items-center gap-1.5">
+            <Wrench className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Available IT Tools (Controlled Registry):</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5 text-slate-600 text-[10px]">
+            <span className="bg-white px-2 py-0.5 rounded border border-indigo-100 font-mono">✓ Check Account (Read-Only)</span>
+            <span className="bg-white px-2 py-0.5 rounded border border-indigo-100 font-mono">✓ Check VPN (Read-Only)</span>
+            <span className="bg-white px-2 py-0.5 rounded border border-indigo-100 font-mono">✓ Check Ticket (Read-Only)</span>
+            <span className="bg-white px-2 py-0.5 rounded border border-indigo-100 font-mono">✓ Reset Password (Approval Req)</span>
+            <span className="bg-white px-2 py-0.5 rounded border border-indigo-100 font-mono">✓ Replace Laptop (POL-01)</span>
+          </div>
+        </div>
+
         {/* Input form */}
         <div className="space-y-2">
           <div className="flex gap-2">
             <Input
               id="agent-query-input"
-              placeholder="Ask an IT support question (e.g. My password is locked)..."
+              placeholder="Ask an IT support question or request an action..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
@@ -147,7 +219,7 @@ export function AgentQueryCard() {
 
           {/* Quick test scenarios */}
           <div className="space-y-1 pt-1">
-            <div className="text-[11px] font-medium text-slate-400">Assignment Test Scenarios:</div>
+            <div className="text-[11px] font-medium text-slate-400">Quick Test Scenarios & Actions:</div>
             <div className="flex flex-wrap gap-1.5">
               {AGENT_SCENARIOS.map((scenario, idx) => (
                 <button
@@ -216,6 +288,95 @@ export function AgentQueryCard() {
                   <div className="font-semibold text-rose-800">Escalation Required</div>
                   <p className="leading-relaxed">{result.escalation_reason}</p>
                 </div>
+              </div>
+            )}
+
+            {/* Phase 5 Action Execution & Approval Block */}
+            {result.action && (
+              <div className="space-y-2">
+                {result.action.status === "PENDING_APPROVAL" && (
+                  <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-lg text-xs space-y-2 text-amber-950">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-semibold text-amber-900">
+                        <Clock className="w-4 h-4 text-amber-600" />
+                        <span>Approval Required: {result.action.action_name}</span>
+                      </div>
+                      <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 font-mono text-[10px]">
+                        Pending Approval
+                      </Badge>
+                    </div>
+                    <div className="text-[11px] text-amber-800 leading-relaxed">
+                      {result.action.message}
+                    </div>
+                    {result.action.action_request_id && (
+                      <div className="text-[10px] font-mono text-amber-700">
+                        Request ID: <span className="font-semibold">{result.action.action_request_id}</span>
+                      </div>
+                    )}
+                    {/* Demo Approval Controls */}
+                    <div className="pt-2 border-t border-amber-200/60 flex items-center justify-between">
+                      <span className="text-[10px] text-amber-700 italic">Demo Approval Controls:</span>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          disabled={actionLoading}
+                          onClick={() => handleApprove(result.action?.action_request_id || "")}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] h-7 px-2.5 gap-1"
+                        >
+                          <ThumbsUp className="w-3 h-3" /> Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={actionLoading}
+                          onClick={() => handleReject(result.action?.action_request_id || "")}
+                          className="border-rose-300 text-rose-700 hover:bg-rose-50 text-[11px] h-7 px-2.5 gap-1"
+                        >
+                          <ThumbsDown className="w-3 h-3" /> Reject
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {(result.action.status === "COMPLETED" || result.action.status === "EXECUTED") && (
+                  <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-xs space-y-1.5 text-emerald-950">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-semibold text-emerald-900">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Action Executed: {result.action.action_name}</span>
+                      </div>
+                      <Badge variant="outline" className="bg-emerald-100 text-emerald-800 border-emerald-300 font-mono text-[10px]">
+                        {result.action.status}
+                      </Badge>
+                    </div>
+                    <div className="text-[11px] text-emerald-800 leading-relaxed">
+                      {result.action.message}
+                    </div>
+                    {result.action.data && (
+                      <div className="bg-white/80 p-2 rounded border border-emerald-100 font-mono text-[10px] text-slate-600 max-h-24 overflow-auto">
+                        {JSON.stringify(result.action.data, null, 2)}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {result.action.status === "REJECTED" && (
+                  <div className="p-3 bg-rose-50/70 border border-rose-200 rounded-lg text-xs space-y-1.5 text-rose-950">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-semibold text-rose-900">
+                        <AlertCircle className="w-4 h-4 text-rose-600" />
+                        <span>Action Not Authorized: {result.action.action_name}</span>
+                      </div>
+                      <Badge variant="outline" className="bg-rose-100 text-rose-800 border-rose-300 font-mono text-[10px]">
+                        Rejected
+                      </Badge>
+                    </div>
+                    <div className="text-[11px] text-rose-800 leading-relaxed">
+                      {result.action.message}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

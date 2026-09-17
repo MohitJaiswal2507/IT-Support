@@ -174,6 +174,14 @@ export interface AgentSourceItem {
   title?: string | null;
 }
 
+export interface AgentActionItem {
+  action_name: string;
+  status: string;
+  action_request_id?: string | null;
+  message?: string | null;
+  data?: Record<string, unknown> | null;
+}
+
 export interface AgentQueryResponse {
   query: string;
   intent: string;
@@ -186,6 +194,7 @@ export interface AgentQueryResponse {
   relevant_sources?: string[];
   sources: AgentSourceItem[];
   escalation_reason?: string | null;
+  action?: AgentActionItem | null;
 }
 
 /**
@@ -208,5 +217,70 @@ export async function sendAgentQuery(query: string): Promise<AgentQueryResponse>
     throw new Error(errorData.detail || `Server returned ${res.status}: ${res.statusText}`);
   }
 
+  return res.json();
+}
+
+export interface ToolMetadataItem {
+  name: string;
+  description: string;
+  risk_level: "READ_ONLY" | "REQUEST_CREATION" | "SENSITIVE";
+  requires_approval: boolean;
+}
+
+/**
+ * Lists all registered IT tools via GET /api/tools
+ */
+export async function getRegisteredTools(): Promise<ToolMetadataItem[]> {
+  const baseUrl = API_BASE_URL.replace(/\/+$/, "");
+  const res = await fetch(`${baseUrl}/api/tools`, { cache: "no-store" });
+  if (!res.ok) {
+    return [];
+  }
+  return res.json();
+}
+
+/**
+ * Approves a pending action request via POST /api/actions/{id}/approve
+ */
+export async function approveActionRequest(
+  actionRequestId: string,
+  approver: string = "demo-admin",
+  reason: string = "Approved in demo"
+): Promise<AgentActionItem> {
+  const baseUrl = API_BASE_URL.replace(/\/+$/, "");
+  const res = await fetch(`${baseUrl}/api/actions/${actionRequestId}/approve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ approver, reason }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Approval failed (${res.status})`);
+  }
+  return res.json();
+}
+
+/**
+ * Rejects a pending action request via POST /api/actions/{id}/reject
+ */
+export async function rejectActionRequest(
+  actionRequestId: string,
+  approver: string = "demo-admin",
+  reason: string = "Rejected in demo"
+): Promise<AgentActionItem> {
+  const baseUrl = API_BASE_URL.replace(/\/+$/, "");
+  const res = await fetch(`${baseUrl}/api/actions/${actionRequestId}/reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ approver, reason }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Rejection failed (${res.status})`);
+  }
   return res.json();
 }

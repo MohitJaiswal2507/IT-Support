@@ -3,7 +3,7 @@ Database package for SQLAlchemy engine, models, and seed utilities.
 """
 
 from .database import Base, engine, get_db, init_db
-from .models import KnowledgeBaseArticle, Policy, EmployeeRequest, Ticket
+from .models import KnowledgeBaseArticle, Policy, EmployeeRequest, Ticket, ActionRequest, Approval
 
 __all__ = [
     "Base",
@@ -14,4 +14,6 @@ __all__ = [
     "Policy",
     "EmployeeRequest",
     "Ticket",
+    "ActionRequest",
+    "Approval",
 ]

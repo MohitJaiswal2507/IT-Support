@@ -16,6 +16,10 @@ from app.agent.evidence import retrieve_and_group_evidence
 from app.agent.decision import DecisionEngine
 from app.agent.response import ResponseGenerator
 from app.llm.generator import LLMResponseGenerator
+from app.actions.detector import ActionDetector
+from app.actions.service import ActionService
+from sqlalchemy.orm import Session
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +27,11 @@ logger = logging.getLogger(__name__)
 class AgentWorkflow:
     """
     Orchestrates the deterministic, grounded IT Support Agent workflow,
-    with an optional grounded LLM response generation layer and deterministic fallback.
+    with an optional grounded LLM response generation layer,
+    and a controlled, auditable IT action execution layer (Phase 5).
     """
 
-    def process(self, raw_query: str) -> AgentState:
+    def process(self, raw_query: str, db: Optional[Session] = None) -> AgentState:
         state = AgentState(original_query=raw_query)
 
         # 1. Request Understanding & Normalization
@@ -110,11 +115,34 @@ class AgentWorkflow:
         state.response_source = resp_source
         state.relevant_source_ids = final_sources
 
+        # 8. Controlled Action Execution Layer (Phase 5)
+        detected = ActionDetector.detect_action(raw_query, state.intent)
+        if detected:
+            action_name, action_params = detected
+            action_result = ActionService.execute_action(
+                action_name=action_name,
+                parameters=action_params,
+                requester="demo-user",
+                db=db
+            )
+            state.action = action_result
+
+            # Append structured audit note to response
+            if action_result.status == "COMPLETED":
+                state.response += f"\n\n[Action Completed: {action_result.action_name}]\n{action_result.message}"
+            elif action_result.status == "PENDING_APPROVAL":
+                state.response += (
+                    f"\n\n[Action Submitted for Approval: {action_result.action_name}]\n"
+                    f"Request ID: {action_result.action_request_id} — {action_result.message}"
+                )
+            elif action_result.status == "REJECTED":
+                state.response += f"\n\n[Action Not Authorized: {action_result.action_name}]\n{action_result.message}"
+
         return state
 
 
 _workflow = AgentWorkflow()
 
 
-def run_agent_workflow(query: str) -> AgentState:
-    return _workflow.process(query)
+def run_agent_workflow(query: str, db: Optional[Session] = None) -> AgentState:
+    return _workflow.process(query, db=db)
