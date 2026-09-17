@@ -33,10 +33,14 @@ MANIFEST
 *.sqlite
 *.sqlite3
 backend/*.db
+!backend/veridian.db
 
 # Vector Store & Storage
 backend/storage/
 *.faiss
+!backend/storage/
+!backend/storage/vector_store/
+!backend/storage/vector_store/**
 
 # Virtual Environments
 venv/
