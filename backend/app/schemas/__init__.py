@@ -7,6 +7,7 @@ from .knowledge_base import KnowledgeBaseArticleResponse, KnowledgeBaseListRespo
 from .policies import PolicyResponse, PolicyListResponse
 from .requests import EmployeeRequestResponse, EmployeeRequestListResponse
 from .tickets import TicketResponse, TicketListResponse
+from .retrieval import SearchResult, RetrievalResponse
 
 __all__ = [
     "HealthResponse",
@@ -18,4 +19,6 @@ __all__ = [
     "EmployeeRequestListResponse",
     "TicketResponse",
     "TicketListResponse",
+    "SearchResult",
+    "RetrievalResponse",
 ]
