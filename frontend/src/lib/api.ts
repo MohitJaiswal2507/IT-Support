@@ -166,3 +166,45 @@ export async function searchRetrieval(
 
   return res.json();
 }
+
+export interface AgentSourceItem {
+  source_id: string;
+  source_type: string;
+  score: number;
+  title?: string | null;
+}
+
+export interface AgentQueryResponse {
+  query: string;
+  intent: string;
+  confidence: number;
+  decision: "RESOLVE" | "CLARIFY" | "ESCALATE";
+  clarification_required: boolean;
+  clarification_question?: string | null;
+  response: string;
+  sources: AgentSourceItem[];
+  escalation_reason?: string | null;
+}
+
+/**
+ * Sends an IT support query to the agent workflow via POST /api/agent/query
+ */
+export async function sendAgentQuery(query: string): Promise<AgentQueryResponse> {
+  const baseUrl = API_BASE_URL.replace(/\/+$/, "");
+  const res = await fetch(`${baseUrl}/api/agent/query`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
+    body: JSON.stringify({ query }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Server returned ${res.status}: ${res.statusText}`);
+  }
+
+  return res.json();
+}
