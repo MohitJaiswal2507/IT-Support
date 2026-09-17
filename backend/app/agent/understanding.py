@@ -45,6 +45,10 @@ def is_underspecified_query(query: str) -> Tuple[bool, str]:
     if cleaned in underspecified_exact:
         return True, cleaned
 
+    # Generic help inquiries without specific symptoms or request details
+    if re.match(r"^(i\s+)?(need|want)\s+help\s+with\s+(my\s+)?(laptop|computer|pc|software|wifi|vpn|device)$", cleaned):
+        return True, cleaned
+
     # Ultra-short query with no verbs or action keywords (e.g. 1-2 words)
     if len(words) <= 2:
         subject_only = {"laptop", "computer", "pc", "software", "program", "wifi", "vpn", "monitor", "mouse", "keyboard"}

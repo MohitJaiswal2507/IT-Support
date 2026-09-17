@@ -62,3 +62,4 @@ class AgentState(BaseModel):
     response_source: str = "deterministic_fallback"
     relevant_source_ids: List[str] = Field(default_factory=list)
     escalation_reason: Optional[str] = None
+    action: Optional[Any] = None
