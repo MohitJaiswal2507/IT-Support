@@ -8,6 +8,7 @@ from .policies import PolicyResponse, PolicyListResponse
 from .requests import EmployeeRequestResponse, EmployeeRequestListResponse
 from .tickets import TicketResponse, TicketListResponse
 from .retrieval import SearchResult, RetrievalResponse
+from .agent import AgentQueryRequest, AgentQueryResponse, AgentSourceItem
 
 __all__ = [
     "HealthResponse",
@@ -21,4 +22,7 @@ __all__ = [
     "TicketListResponse",
     "SearchResult",
     "RetrievalResponse",
+    "AgentQueryRequest",
+    "AgentQueryResponse",
+    "AgentSourceItem",
 ]

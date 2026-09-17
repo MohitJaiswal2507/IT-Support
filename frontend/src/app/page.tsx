@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { StatusCard } from "@/components/StatusCard";
 import { DatasetMetricsCard } from "@/components/DatasetMetricsCard";
 import { RetrievalTestCard } from "@/components/RetrievalTestCard";
+import { AgentQueryCard } from "@/components/AgentQueryCard";
 import { Layers, ShieldCheck, Cpu } from "lucide-react";
 
 export default function Home() {
@@ -25,11 +26,12 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Live Status Card & Dataset Verification & Retrieval Engine */}
+        {/* Live Status Card & Dataset Verification & Retrieval Engine & Agent Workflow */}
         <div className="mb-10 space-y-2">
           <StatusCard />
-          <DatasetMetricsCard />
+          <AgentQueryCard />
           <RetrievalTestCard />
+          <DatasetMetricsCard />
         </div>
 
         {/* Phase Architecture Info */}
