@@ -122,3 +122,47 @@ export async function fetchDatasetCounts(): Promise<DatasetCounts | null> {
     return null;
   }
 }
+
+export interface SearchResultItem {
+  chunk_id: string;
+  source_id: string;
+  source_type: "knowledge_base" | "policy" | "ticket";
+  score: number;
+  text: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface RetrievalSearchResponse {
+  query: string;
+  total_results: number;
+  results: SearchResultItem[];
+}
+
+/**
+ * Searches the local vector store via GET /api/retrieval/search
+ */
+export async function searchRetrieval(
+  query: string,
+  topK: number = 3,
+  sourceType?: string
+): Promise<RetrievalSearchResponse> {
+  const baseUrl = API_BASE_URL.replace(/\/+$/, "");
+  const params = new URLSearchParams({
+    query,
+    top_k: topK.toString(),
+  });
+  if (sourceType && sourceType !== "all") {
+    params.set("source_type", sourceType);
+  }
+
+  const res = await fetch(`${baseUrl}/api/retrieval/search?${params.toString()}`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Server returned ${res.status}: ${res.statusText}`);
+  }
+
+  return res.json();
+}
