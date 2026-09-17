@@ -1,9 +1,22 @@
 import type { Metadata } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Veridian IT Support Agent",
-  description: "Internal IT Support Agent for Veridian Corp - Phase 0 Foundation",
+  title: "VERIDIAN — Internal IT Support Agent",
+  description: "Enterprise IT Support Agent with Knowledge Retrieval, Policy Enforcement, Grounded AI & Controlled Actions",
 };
 
 export default function RootLayout({
@@ -12,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased font-sans flex flex-col">
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className="min-h-screen bg-[#E0E1DD] text-[#0D1B2A] antialiased font-sans flex flex-col selection:bg-[#415A77]/20 selection:text-[#0D1B2A]">
         {children}
       </body>
     </html>
