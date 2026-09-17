@@ -45,10 +45,10 @@ echo [3/3] Starting Backend (FastAPI) and Frontend (Next.js)...
 echo.
 
 :: Launch FastAPI in a dedicated command window
-start "Veridian Backend (FastAPI)" cmd /k "cd /d ^"%BACKEND_DIR%^" && ^".venv\Scripts\uvicorn.exe^" app.main:app --reload --host 127.0.0.1 --port 8000"
+start "Veridian Backend (FastAPI)" /D "%BACKEND_DIR%" cmd /k ".venv\Scripts\uvicorn.exe app.main:app --reload --host 127.0.0.1 --port 8000"
 
 :: Launch Next.js in a dedicated command window
-start "Veridian Frontend (Next.js)" cmd /k "cd /d ^"%FRONTEND_DIR%^" && npm run dev"
+start "Veridian Frontend (Next.js)" /D "%FRONTEND_DIR%" cmd /k "npm run dev"
 
 echo ==============================================================================
 echo  Services launched in dedicated console windows:

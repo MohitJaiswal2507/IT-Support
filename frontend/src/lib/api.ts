@@ -14,6 +14,13 @@ export interface HealthCheckResult {
   endpoint: string;
 }
 
+export interface DatasetCounts {
+  knowledgeBase: number;
+  policies: number;
+  requests: number;
+  tickets: number;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /**
@@ -78,5 +85,40 @@ export async function checkBackendHealth(): Promise<HealthCheckResult> {
       checkedAt,
       endpoint,
     };
+  }
+}
+
+/**
+ * Fetches dataset counts dynamically from Phase 1 backend APIs.
+ */
+export async function fetchDatasetCounts(): Promise<DatasetCounts | null> {
+  const baseUrl = API_BASE_URL.replace(/\/+$/, "");
+  try {
+    const [kbRes, polRes, reqRes, tickRes] = await Promise.all([
+      fetch(`${baseUrl}/api/knowledge-base`, { cache: "no-store" }),
+      fetch(`${baseUrl}/api/policies`, { cache: "no-store" }),
+      fetch(`${baseUrl}/api/requests`, { cache: "no-store" }),
+      fetch(`${baseUrl}/api/tickets`, { cache: "no-store" }),
+    ]);
+
+    if (!kbRes.ok || !polRes.ok || !reqRes.ok || !tickRes.ok) {
+      return null;
+    }
+
+    const [kbData, polData, reqData, tickData] = await Promise.all([
+      kbRes.json(),
+      polRes.json(),
+      reqRes.json(),
+      tickRes.json(),
+    ]);
+
+    return {
+      knowledgeBase: kbData.total ?? 0,
+      policies: polData.total ?? 0,
+      requests: reqData.total ?? 0,
+      tickets: tickData.total ?? 0,
+    };
+  } catch {
+    return null;
   }
 }

@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 
 class HealthResponse(BaseModel):
     """Health check response schema."""
-    status: str = Field(default="ok", description="Service health status", example="ok")
-    service: str = Field(default="veridian-it-support-agent", description="Service identifier", example="veridian-it-support-agent")
+    status: str = Field(default="ok", description="Service health status")
+    service: str = Field(default="veridian-it-support-agent", description="Service identifier")
     environment: Optional[str] = Field(default=None, description="Current execution environment")
     version: Optional[str] = Field(default=None, description="API version")
 

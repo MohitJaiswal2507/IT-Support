@@ -28,6 +28,12 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# SQLite & Databases
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
+
 # Virtual Environments
 venv/
 .venv/
