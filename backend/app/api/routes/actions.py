@@ -1,7 +1,7 @@
 import json
 import logging
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Dict, Any, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import ActionRequest
@@ -47,6 +47,36 @@ def execute_controlled_action(
         db=db
     )
     return result
+
+
+@router.get(
+    "/api/actions",
+    summary="List Action Requests",
+    description="Retrieve all submitted action requests with optional status filtering."
+)
+def list_action_requests(
+    status: Optional[str] = Query(None, description="Filter by action status"),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    query = db.query(ActionRequest)
+    if status:
+        query = query.filter(ActionRequest.status.ilike(f"%{status}%"))
+    records = query.order_by(ActionRequest.requested_at.desc()).all()
+    items = []
+    for r in records:
+        items.append({
+            "action_id": r.action_id,
+            "action_name": r.action_name,
+            "status": r.status,
+            "requester": r.requester,
+            "requested_at": r.requested_at,
+            "approved_at": r.approved_at,
+            "completed_at": r.completed_at,
+            "approval_required": r.approval_required,
+            "parameters": json.loads(r.parameters_json) if r.parameters_json else {},
+            "result": json.loads(r.result_json) if r.result_json else {}
+        })
+    return {"items": items, "total": len(items)}
 
 
 @router.get(
