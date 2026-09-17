@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     # Database Configuration
     DATABASE_URL: str = "sqlite:///./veridian.db"
 
+    # LLM Configuration (Phase 4)
+    LLM_PROVIDER: str = "openai"
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-4o-mini"
+
     # Data directory path
     DATA_DIR: Path = Path(__file__).resolve().parent.parent.parent.parent / "data"
 

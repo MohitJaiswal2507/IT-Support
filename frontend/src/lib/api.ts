@@ -182,6 +182,8 @@ export interface AgentQueryResponse {
   clarification_required: boolean;
   clarification_question?: string | null;
   response: string;
+  response_source?: "llm" | "deterministic_fallback";
+  relevant_sources?: string[];
   sources: AgentSourceItem[];
   escalation_reason?: string | null;
 }

@@ -16,7 +16,9 @@ import {
   Shield,
   Ticket,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  ShieldCheck
 } from "lucide-react";
 
 const AGENT_SCENARIOS = [
@@ -106,10 +108,10 @@ export function AgentQueryCard() {
             </div>
             <div>
               <CardTitle className="text-sm font-semibold text-slate-900">
-                Phase 3 — Veridian IT Support Agent
+                Phase 4 — Veridian IT Support Agent
               </CardTitle>
               <CardDescription className="text-[11px] text-slate-500">
-                Controlled, deterministic agent workflow (Understand &rarr; Classify &rarr; Retrieve &rarr; Decide &rarr; Ground)
+                Grounded response generation with deterministic workflow controls & fallback
               </CardDescription>
             </div>
           </div>
@@ -219,8 +221,21 @@ export function AgentQueryCard() {
 
             {/* Grounded response */}
             <div className="space-y-1.5">
-              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                Grounded Agent Response
+              <div className="flex items-center justify-between">
+                <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Grounded Agent Response
+                </div>
+                {result.response_source === "llm" ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-medium">
+                    <Sparkles className="h-3 w-3 text-emerald-600" />
+                    AI-generated from verified IT sources
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 font-medium">
+                    <ShieldCheck className="h-3 w-3 text-slate-500" />
+                    Using verified fallback response
+                  </span>
+                )}
               </div>
               <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">
                 {result.response}

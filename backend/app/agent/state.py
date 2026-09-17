@@ -59,4 +59,6 @@ class AgentState(BaseModel):
     historical_ticket_relevant: bool = False
     decision: WorkflowDecision = WorkflowDecision.CLARIFY
     response: str = ""
+    response_source: str = "deterministic_fallback"
+    relevant_source_ids: List[str] = Field(default_factory=list)
     escalation_reason: Optional[str] = None
