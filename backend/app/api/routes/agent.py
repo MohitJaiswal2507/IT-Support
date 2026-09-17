@@ -43,6 +43,8 @@ def query_agent(payload: AgentQueryRequest) -> AgentQueryResponse:
             clarification_required=state.clarification_required,
             clarification_question=state.clarification_question,
             response=state.response,
+            response_source=state.response_source,
+            relevant_sources=state.relevant_source_ids or [src.source_id for src in state.relevant_sources],
             sources=source_items,
             escalation_reason=state.escalation_reason
         )

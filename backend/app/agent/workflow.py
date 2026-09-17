@@ -15,13 +15,15 @@ from app.agent.clarification import ClarificationManager
 from app.agent.evidence import retrieve_and_group_evidence
 from app.agent.decision import DecisionEngine
 from app.agent.response import ResponseGenerator
+from app.llm.generator import LLMResponseGenerator
 
 logger = logging.getLogger(__name__)
 
 
 class AgentWorkflow:
     """
-    Orchestrates the deterministic, grounded IT Support Agent workflow.
+    Orchestrates the deterministic, grounded IT Support Agent workflow,
+    with an optional grounded LLM response generation layer and deterministic fallback.
     """
 
     def process(self, raw_query: str) -> AgentState:
@@ -36,6 +38,7 @@ class AgentWorkflow:
             state.clarification_required = True
             state.clarification_question = "Your inquiry is empty or contains no usable text. Please describe your IT request."
             state.response = state.clarification_question
+            state.response_source = "deterministic_fallback"
             return state
 
         # Check for underspecified / single-topic query
@@ -60,12 +63,18 @@ class AgentWorkflow:
                 evidence=GroupedEvidence(),
                 relevant_sources=[]
             )
+            # LLM Layer for constrained clarification
+            llm_text, resp_source, final_sources = LLMResponseGenerator.generate_response(state)
+            state.response = llm_text
+            state.response_source = resp_source
+            state.relevant_source_ids = final_sources
             return state
 
         # 4. Retrieval Integration
         grouped_evidence, flat_sources, retrieval_ok = retrieve_and_group_evidence(normalized, top_k=5)
         state.evidence = grouped_evidence
         state.relevant_sources = flat_sources
+        state.relevant_source_ids = [src.source_id for src in flat_sources]
         state.policy_relevant = len(grouped_evidence.policy) > 0
         state.historical_ticket_relevant = len(grouped_evidence.ticket_history) > 0
 
@@ -85,7 +94,7 @@ class AgentWorkflow:
             state.clarification_required = True
             state.clarification_question = ClarificationManager.get_clarification(normalized, intent)
 
-        # 6. Grounded Response Generation
+        # 6. Deterministic Response Generation (Base / Fallback)
         state.response = ResponseGenerator.generate(
             decision=state.decision,
             intent=state.intent,
@@ -94,6 +103,12 @@ class AgentWorkflow:
             evidence=state.evidence,
             relevant_sources=state.relevant_sources
         )
+
+        # 7. LLM Response Generation Layer (Phase 4)
+        llm_text, resp_source, final_sources = LLMResponseGenerator.generate_response(state)
+        state.response = llm_text
+        state.response_source = resp_source
+        state.relevant_source_ids = final_sources
 
         return state
 

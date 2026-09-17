@@ -21,5 +21,7 @@ class AgentQueryResponse(BaseModel):
     clarification_required: bool
     clarification_question: Optional[str] = None
     response: str
+    response_source: str = "deterministic_fallback"
+    relevant_sources: List[str] = Field(default_factory=list)
     sources: List[AgentSourceItem] = Field(default_factory=list)
     escalation_reason: Optional[str] = None
